@@ -56,8 +56,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * CART-DISCOUNT
  *
- * Source : https://stackoverflow.com/questions/77443063/woocommerce-duplicate-product-in-cart-item-without-increasing-the-product-quanti/77443562#77443562
- *
  * @return $cart_updated
  */
 add_filter('woocommerce_update_cart_action_cart_updated', 'action_on_cart_updated');
