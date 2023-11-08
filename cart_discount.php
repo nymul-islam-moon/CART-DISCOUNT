@@ -114,3 +114,22 @@ function customized_cart_item_remove_link( $button_link, $cart_item_key ){
 
     return $button_link;
 }
+
+
+/**
+ * Hide duplicated item quantity handler
+ */
+
+add_filter('woocommerce_cart_item_quantity', 'hide_quantity_handler', 10, 2);
+
+function hide_quantity_handler($product_quantity, $cart_item_key) {
+
+    // Get the cart object
+    $cart_item = WC()->cart->get_cart()[$cart_item_key];
+
+    if ( isset( $cart_item['free_item'] ) ) {
+        $product_quantity = '1';
+    }
+
+    return $product_quantity;
+}
