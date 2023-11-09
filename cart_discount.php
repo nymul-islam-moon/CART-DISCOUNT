@@ -9,7 +9,7 @@
  *
  * @wordpress-plugin
  * Plugin Name:       CART-DISCOUNT
- * Plugin URI:        https://github.com/nymul-islam-moon/WOO-Sing-Prod-hook
+ * Plugin URI:        https://github.com/nymul-islam-moon/CART-DISCOUNT
  * Description:       This plugin will add duplicate cart item from parent item when the parent item have quantity is >= 5 and remove the duplicate item when the parent item have quantity < 5;
  * Version:           1.0.0
  * Requires at least: 5.2
@@ -19,7 +19,7 @@
  * Text Domain:       wp-rest-plugin
  * License:           GPL v2 or later
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Update URI:        https://github.com/nymul-islam-moon/CART-DISCOUNT-PLUGIN
+ * Update URI:        https://github.com/nymul-islam-moon/CART-DISCOUNT
  */
 
 /**
@@ -69,15 +69,8 @@ function action_on_cart_updated( $cart_updated ) {
                 $item_data = ['unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item' => $item['product_id']];
                 // Add a separated product (free )
 
-//                if ( isset( $item['parent_cart_item'] ) ) {
-//
-//                }
-
                 $cart->add_to_cart($item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data);
             }
-
-
-
 
             if ( isset( $item['parent_cart_item'] ) ) {
                 // check parent cart item quantity
