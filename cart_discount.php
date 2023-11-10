@@ -68,21 +68,22 @@ function action_on_cart_updated( $cart_updated ) {
         foreach ( $cart->get_cart() as $item_key => $item ) {
             if ( $item && 5 <= $item['quantity'] ) {
 
-                $item_data = ['unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item' => $item['product_id']];
+                $item_data = [ 'unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item_key' => $item_key  ];
                 // Add a separated product (free )
 
                 $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
             }
 
             /**
-             * Remove free cart item under the specific quantity;
+             * Remove free cart item if parent cart
              */
-            if ( isset( $item['parent_cart_item'] ) ) {
+            if ( isset( $item['parent_cart_item_key'] ) ) {
                 // check parent cart item quantity
-                $parent_id = $item['parent_cart_item'];
-                $parent_cart_item = WC()->cart->get_cart()[$parent_id];
+                $cart_item_key = $item['parent_cart_item_key'];
 
-                if ( $parent_cart_item['quantity'] < 5 ){
+                $cart_item = WC()->cart->get_cart_item($cart_item_key);
+
+                if ( $cart_item['quantity'] < 5 ){
                     $cart->remove_cart_item($item_key);
                 }
 
@@ -126,8 +127,9 @@ add_filter('woocommerce_before_calculate_totals', 'action_before_calculate_total
 
 function filter_cart_item_displayed_price($price_html, $cart_item){
     if (isset($cart_item['free_item'])) {
-                return 'FREE';
+        return 'FREE';
     }
+
     return $price_html;
 }
 
