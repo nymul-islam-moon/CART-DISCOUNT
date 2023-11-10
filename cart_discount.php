@@ -151,7 +151,7 @@ function customized_cart_item_remove_link( $button_link, $cart_item_key ){
     $cart_item = WC()->cart->get_cart()[$cart_item_key];
 
     if ( isset( $cart_item['free_item'] ) ) {
-//        $button_link = '';
+        $button_link = '';
     }
 
     return $button_link;
@@ -182,28 +182,24 @@ add_filter('woocommerce_cart_item_quantity', 'set_item_quantity', 10, 2);
 
 
 /**
- * Remove discount item when the parent item is deleted
+ * Remove discount item from cart page when the parent item is deleted
  *
  * @param $cart_item_key
  * @param $cart
  *
  * @return void
  */
-function remove_dis_item( $cart_item_key, $cart ) {
+function remove_discount_item( $cart_item_key, $cart ) {
 
-    $cart_item = $cart->get_cart()[$cart_item_key];
-    error_log( $cart_item['product_id'] );
+    foreach ( $cart->get_cart() as $item_key => $item ) {
 
-//    foreach ( $cart->get_cart() as $item_key => $item ) {
-//
-//        if( isset( $item['parent_cart_item'] && $item['parent_cart_item'] == $item['product'] ) ) {
-//            error_log( 'Offered cart item key : ' . $item_key . ' | Deleted cart item key : ' . $cart_item_key . ' | Offer cart item parent key : ' . $item['parent_cart_item']);
-////            $cart->remove_cart_item( $item_key );
-//        }
-//    }
+        if( isset( $item['parent_cart_item_key'] ) && $item['parent_cart_item_key'] == $cart_item_key ) {
+            $cart->remove_cart_item( $item_key );
+        }
+    }
 
 }
-add_action('woocommerce_cart_item_removed', 'remove_dis_item', 10, 2);
+add_action('woocommerce_cart_item_removed', 'remove_discount_item', 10, 2);
 
 
 
