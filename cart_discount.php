@@ -56,9 +56,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * CART-DISCOUNT
  *
+ * works on cart page when the cart item is change.
+ *
  * @return $cart_updated
  */
-add_filter('woocommerce_update_cart_action_cart_updated', 'action_on_cart_updated');
+
 function action_on_cart_updated( $cart_updated ) {
     $cart = WC()->cart;
 
@@ -69,9 +71,12 @@ function action_on_cart_updated( $cart_updated ) {
                 $item_data = ['unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item' => $item['product_id']];
                 // Add a separated product (free )
 
-                $cart->add_to_cart($item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data);
+                $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
             }
 
+            /**
+             * Remove free cart item under the specific quantity;
+             */
             if ( isset( $item['parent_cart_item'] ) ) {
                 // check parent cart item quantity
                 $parent_id = $item['parent_cart_item'];
@@ -88,11 +93,17 @@ function action_on_cart_updated( $cart_updated ) {
     return $cart_updated;
 }
 
-// Set cart item price
-add_filter('woocommerce_before_calculate_totals', 'action_before_calculate_totals');
+add_filter('woocommerce_update_cart_action_cart_updated', 'action_on_cart_updated');
+
+
+/**
+ * Set free cart item price 0
+ *
+ * @param $cart
+ *
+ * @return void
+ */
 function action_before_calculate_totals( $cart ) {
-    if ((is_admin() && !defined('DOING_AJAX')))
-        return;
 
     foreach ( $cart->get_cart() as $item_key => $item ) {
         if ( isset($item['free_item']) ) {
@@ -100,10 +111,19 @@ function action_before_calculate_totals( $cart ) {
         }
     }
 }
+// Set cart item price
+add_filter('woocommerce_before_calculate_totals', 'action_before_calculate_totals');
 
-// Display "Free" instead of "0" price
-add_action('woocommerce_cart_item_subtotal', 'filter_cart_item_displayed_price', 10, 2);
-add_action('woocommerce_cart_item_price', 'filter_cart_item_displayed_price', 10, 2);
+
+/**
+ * Display FREE tag to the subtotal and cart item price section
+ *
+ * @param $price_html
+ * @param $cart_item
+ *
+ * @return mixed|string
+ */
+
 function filter_cart_item_displayed_price($price_html, $cart_item){
     if (isset($cart_item['free_item'])) {
                 return 'FREE';
@@ -111,31 +131,41 @@ function filter_cart_item_displayed_price($price_html, $cart_item){
     return $price_html;
 }
 
+// Display "Free" instead of "0" price
+add_action('woocommerce_cart_item_subtotal', 'filter_cart_item_displayed_price', 10, 2);
+add_action('woocommerce_cart_item_price', 'filter_cart_item_displayed_price', 10, 2);
+
 
 /**
- * Remove delete button from duplicate cart item
+ * Remove Delete button from the free product on cart page
+ *
+ * @param $button_link
+ * @param $cart_item_key
+ *
+ * @return mixed|string
  */
-
-add_filter('woocommerce_cart_item_remove_link', 'customized_cart_item_remove_link', 20, 2 );
 function customized_cart_item_remove_link( $button_link, $cart_item_key ){
 
     $cart_item = WC()->cart->get_cart()[$cart_item_key];
 
     if ( isset( $cart_item['free_item'] ) ) {
-        $button_link = '';
+//        $button_link = '';
     }
 
     return $button_link;
 }
+add_filter('woocommerce_cart_item_remove_link', 'customized_cart_item_remove_link', 20, 2 );
 
 
 /**
- * Hide duplicated item quantity handler
+ * Set discount item quantity to 1
+ *
+ * @param $product_quantity
+ * @param $cart_item_key
+ *
+ * @return mixed|string
  */
-
-add_filter('woocommerce_cart_item_quantity', 'hide_quantity_handler', 10, 2);
-
-function hide_quantity_handler($product_quantity, $cart_item_key) {
+function set_item_quantity($product_quantity, $cart_item_key) {
 
     // Get the cart object
     $cart_item = WC()->cart->get_cart()[$cart_item_key];
@@ -146,3 +176,100 @@ function hide_quantity_handler($product_quantity, $cart_item_key) {
 
     return $product_quantity;
 }
+add_filter('woocommerce_cart_item_quantity', 'set_item_quantity', 10, 2);
+
+
+/**
+ * Remove discount item when the parent item is deleted
+ *
+ * @param $cart_item_key
+ * @param $cart
+ *
+ * @return void
+ */
+function remove_dis_item( $cart_item_key, $cart ) {
+
+    $cart_item = $cart->get_cart()[$cart_item_key];
+    error_log( $cart_item['product_id'] );
+
+//    foreach ( $cart->get_cart() as $item_key => $item ) {
+//
+//        if( isset( $item['parent_cart_item'] && $item['parent_cart_item'] == $item['product'] ) ) {
+//            error_log( 'Offered cart item key : ' . $item_key . ' | Deleted cart item key : ' . $cart_item_key . ' | Offer cart item parent key : ' . $item['parent_cart_item']);
+////            $cart->remove_cart_item( $item_key );
+//        }
+//    }
+
+}
+add_action('woocommerce_cart_item_removed', 'remove_dis_item', 10, 2);
+
+
+
+/**
+ * Cart Discount
+ *
+ * Add free product when the product s add to carted and the product quantity is full-fill the condition
+ *
+ * @return Free_Product
+ */
+
+//// Add an extra product to the cart when a specific product is added
+//function add_extra_product_on_add_to_cart($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
+//    error_log( 'Cart Item Key -> ' . $cart_item_key . '\n Product ID -> ' . $product_id . '\n Quantity -> ' . $quantity . '\n Variation ID -> ' . $variation_id . '\n variation -> ' . $variation . '\n Cart Item Data -> ' . $cart_item_data  );
+////    if ($product_id == 22) {
+////        $cart_item = WC()->cart->get_cart()[$cart_item_key];
+////        $item_data = ['unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item' => $cart_item['product_id']];
+////        // Add the extra product to the cart
+////        WC()->cart->add_to_cart($cart_item['product_id'], 1, $cart_item['variation_id'], $cart_item['variation'], $item_data);
+////    }
+//}
+//add_action('woocommerce_add_to_cart', 'add_extra_product_on_add_to_cart', 10, 6);
+
+
+/**
+ * Experiment for ad to cart 1
+ */
+//
+//function check_and_add_free_item($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
+//    // Check if the current product is a free item (replace 'FREE_ITEM_ID' with the actual free item product ID)
+//    $free_item_id = FREE_ITEM_ID;
+//
+//    if ($product_id !== $free_item_id) {
+//        // Check the cart for the presence of the free item
+//        $cart = WC()->cart;
+//
+//        $free_item_in_cart = false;
+//
+//        foreach ($cart->get_cart() as $cart_item) {
+//            if ($cart_item['product_id'] == $free_item_id) {
+//                $free_item_in_cart = true;
+//                break;
+//            }
+//        }
+//
+//        // If the free item is not in the cart and the quantity is equal or over 5, add the free item
+//        if (!$free_item_in_cart && $quantity >= 5) {
+//            $free_item_quantity = 1; // Set the quantity of the free item
+//            $cart->add_to_cart($free_item_id, $free_item_quantity);
+//        }
+//    }
+//}
+//
+//add_action('woocommerce_add_to_cart', 'check_and_add_free_item', 10, 6);
+
+/**
+ * Experiment 2
+ */
+
+function add_duplicate_product_on_add_to_cart( $cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data ) {
+    // Replace 'DUPLICATE_PRODUCT_ID' with the actual product ID of the duplicate product
+    $duplicate_product_id = $product_id;
+
+    // Set the quantity of the duplicate product
+    $duplicate_quantity = 1;
+
+    // Add the duplicate product to the cart
+    WC()->cart->add_to_cart($duplicate_product_id, $duplicate_quantity);
+}
+
+//add_action('woocommerce_add_to_cart', 'add_duplicate_product_on_add_to_cart', 10, 6);
