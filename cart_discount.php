@@ -93,8 +93,8 @@ function action_on_cart_updated( $cart_updated ) {
     }
     return $cart_updated;
 }
-
 add_filter('woocommerce_update_cart_action_cart_updated', 'action_on_cart_updated');
+add_action('woocommerce_before_cart', 'action_on_cart_updated   ');
 
 
 /**
@@ -202,72 +202,15 @@ function remove_discount_item( $cart_item_key, $cart ) {
 add_action('woocommerce_cart_item_removed', 'remove_discount_item', 10, 2);
 
 
-
 /**
- * Cart Discount
+ * Add a duplicate product when a product add to carted and it's quantity is >= 5
  *
- * Add free product when the product s add to carted and the product quantity is full-fill the condition
+ * @param $cart_item_key
+ * @param $product_id
+ * @param $quantity
+ * @param $variation_id
+ * @param $variation
+ * @param $cart_item_data
  *
- * @return Free_Product
+ * @return void
  */
-
-//// Add an extra product to the cart when a specific product is added
-//function add_extra_product_on_add_to_cart($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
-//    error_log( 'Cart Item Key -> ' . $cart_item_key . '\n Product ID -> ' . $product_id . '\n Quantity -> ' . $quantity . '\n Variation ID -> ' . $variation_id . '\n variation -> ' . $variation . '\n Cart Item Data -> ' . $cart_item_data  );
-////    if ($product_id == 22) {
-////        $cart_item = WC()->cart->get_cart()[$cart_item_key];
-////        $item_data = ['unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item' => $cart_item['product_id']];
-////        // Add the extra product to the cart
-////        WC()->cart->add_to_cart($cart_item['product_id'], 1, $cart_item['variation_id'], $cart_item['variation'], $item_data);
-////    }
-//}
-//add_action('woocommerce_add_to_cart', 'add_extra_product_on_add_to_cart', 10, 6);
-
-
-/**
- * Experiment for ad to cart 1
- */
-//
-//function check_and_add_free_item($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
-//    // Check if the current product is a free item (replace 'FREE_ITEM_ID' with the actual free item product ID)
-//    $free_item_id = FREE_ITEM_ID;
-//
-//    if ($product_id !== $free_item_id) {
-//        // Check the cart for the presence of the free item
-//        $cart = WC()->cart;
-//
-//        $free_item_in_cart = false;
-//
-//        foreach ($cart->get_cart() as $cart_item) {
-//            if ($cart_item['product_id'] == $free_item_id) {
-//                $free_item_in_cart = true;
-//                break;
-//            }
-//        }
-//
-//        // If the free item is not in the cart and the quantity is equal or over 5, add the free item
-//        if (!$free_item_in_cart && $quantity >= 5) {
-//            $free_item_quantity = 1; // Set the quantity of the free item
-//            $cart->add_to_cart($free_item_id, $free_item_quantity);
-//        }
-//    }
-//}
-//
-//add_action('woocommerce_add_to_cart', 'check_and_add_free_item', 10, 6);
-
-/**
- * Experiment 2
- */
-
-function add_duplicate_product_on_add_to_cart( $cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data ) {
-    // Replace 'DUPLICATE_PRODUCT_ID' with the actual product ID of the duplicate product
-    $duplicate_product_id = $product_id;
-
-    // Set the quantity of the duplicate product
-    $duplicate_quantity = 1;
-
-    // Add the duplicate product to the cart
-    WC()->cart->add_to_cart($duplicate_product_id, $duplicate_quantity);
-}
-
-//add_action('woocommerce_add_to_cart', 'add_duplicate_product_on_add_to_cart', 10, 6);
