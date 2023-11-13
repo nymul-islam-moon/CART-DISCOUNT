@@ -53,12 +53,12 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+
 /**
- * CART-DISCOUNT
- *
- * works on cart page when the cart item is change.
- *
- * @return $cart_updated
+ * Add free item to cart when parent item quantity is >= 5
+ * @param $cart_updated
+ * @return mixed
+ * @throws Exception
  */
 
 function action_on_cart_updated( $cart_updated ) {
@@ -70,9 +70,14 @@ function action_on_cart_updated( $cart_updated ) {
 
                 $item_data = [ 'unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item_key' => $item_key  ];
 
+                /**
+                 * Add a counter on parent product to check if the discount is added or not
+                 */
                 WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
 
-                // Add a separated product (free )
+                /**
+                 * Add seperated product ( FREE )
+                 */
                 $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
             }
 
@@ -80,7 +85,9 @@ function action_on_cart_updated( $cart_updated ) {
              * Remove free cart item if parent cart have less than 5 quantity
              */
             if ( isset( $item['parent_cart_item_key'] ) ) {
-                // check parent cart item quantity
+                /**
+                 * Check parent cart item quantity
+                 */
                 $cart_item_key = $item['parent_cart_item_key'];
 
                 $cart_item = WC()->cart->get_cart_item($cart_item_key);
@@ -134,7 +141,6 @@ add_filter('woocommerce_before_calculate_totals', 'action_before_calculate_total
  *
  * @return mixed|string
  */
-
 function filter_cart_item_displayed_price($price_html, $cart_item){
     if (isset($cart_item['free_item'])) {
         return 'FREE';
