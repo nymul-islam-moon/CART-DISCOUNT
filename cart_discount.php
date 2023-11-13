@@ -66,16 +66,18 @@ function action_on_cart_updated( $cart_updated ) {
 
     if ( ! $cart->is_empty() ) {
         foreach ( $cart->get_cart() as $item_key => $item ) {
-            if ( $item && 5 <= $item['quantity'] ) {
+            if ( 5 <= $item['quantity'] && ( ! isset( $item['discount_added'] ) ||  $item['discount_added'] == 'false' ) ) {
 
                 $item_data = [ 'unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item_key' => $item_key  ];
-                // Add a separated product (free )
 
+                WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
+
+                // Add a separated product (free )
                 $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
             }
 
             /**
-             * Remove free cart item if parent cart
+             * Remove free cart item if parent cart have less than 5 quantity
              */
             if ( isset( $item['parent_cart_item_key'] ) ) {
                 // check parent cart item quantity
@@ -84,6 +86,9 @@ function action_on_cart_updated( $cart_updated ) {
                 $cart_item = WC()->cart->get_cart_item($cart_item_key);
 
                 if ( $cart_item['quantity'] < 5 ){
+
+                    WC()->cart->cart_contents[$cart_item_key]['discount_added'] = 'false';
+
                     $cart->remove_cart_item($item_key);
                 }
 
@@ -94,7 +99,7 @@ function action_on_cart_updated( $cart_updated ) {
     return $cart_updated;
 }
 add_filter('woocommerce_update_cart_action_cart_updated', 'action_on_cart_updated');
-add_action('woocommerce_before_cart', 'action_on_cart_updated   ');
+add_action('woocommerce_add_to_cart', 'action_on_cart_updated');
 
 
 /**
@@ -107,6 +112,11 @@ add_action('woocommerce_before_cart', 'action_on_cart_updated   ');
 function action_before_calculate_totals( $cart ) {
 
     foreach ( $cart->get_cart() as $item_key => $item ) {
+
+        if ( isset( $item['test'] ) && $item['test'] == 456 ) {
+            error_log( $item_key );
+        }
+
         if ( isset($item['free_item']) ) {
             $item['data']->set_price(0);
         }
@@ -200,17 +210,3 @@ function remove_discount_item( $cart_item_key, $cart ) {
 
 }
 add_action('woocommerce_cart_item_removed', 'remove_discount_item', 10, 2);
-
-
-/**
- * Add a duplicate product when a product add to carted and it's quantity is >= 5
- *
- * @param $cart_item_key
- * @param $product_id
- * @param $quantity
- * @param $variation_id
- * @param $variation
- * @param $cart_item_data
- *
- * @return void
- */
