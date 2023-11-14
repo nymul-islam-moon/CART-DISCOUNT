@@ -56,8 +56,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Add free item to cart when parent item quantity is >= 5
+ *
  * @param $cart_updated
+ *
  * @return mixed
+ *
  * @throws Exception
  */
 
@@ -68,7 +71,7 @@ function action_on_cart_updated( $cart_updated ) {
         foreach ( $cart->get_cart() as $item_key => $item ) {
             if ( 5 <= $item['quantity'] && ( ! isset( $item['discount_added'] ) ||  $item['discount_added'] == 'false' ) ) {
 
-                $item_data = [ 'unique_key' => md5(microtime().rand()), 'free_item' => 'yes', 'parent_cart_item_key' => $item_key  ];
+                $item_data = [ 'unique_key' => md5(microtime().rand()), 'parent_cart_item_key' => $item_key  ];
 
                 /**
                  * Add a counter on parent product to check if the discount is added or not
@@ -124,7 +127,7 @@ function action_before_calculate_totals( $cart ) {
             error_log( $item_key );
         }
 
-        if ( isset($item['free_item']) ) {
+        if ( isset($item['parent_cart_item_key']) ) {
             $item['data']->set_price(0);
         }
     }
@@ -142,7 +145,7 @@ add_filter('woocommerce_before_calculate_totals', 'action_before_calculate_total
  * @return mixed|string
  */
 function filter_cart_item_displayed_price($price_html, $cart_item){
-    if (isset($cart_item['free_item'])) {
+    if (isset($cart_item['parent_cart_item_key'])) {
         return 'FREE';
     }
 
@@ -166,7 +169,7 @@ function customized_cart_item_remove_link( $button_link, $cart_item_key ){
 
     $cart_item = WC()->cart->get_cart()[$cart_item_key];
 
-    if ( isset( $cart_item['free_item'] ) ) {
+    if ( isset( $cart_item['parent_cart_item_key'] ) ) {
         $button_link = '';
     }
 
@@ -188,7 +191,7 @@ function set_item_quantity($product_quantity, $cart_item_key) {
     // Get the cart object
     $cart_item = WC()->cart->get_cart()[$cart_item_key];
 
-    if ( isset( $cart_item['free_item'] ) ) {
+    if ( isset( $cart_item['parent_cart_item_key'] ) ) {
         $product_quantity = '1';
     }
 
