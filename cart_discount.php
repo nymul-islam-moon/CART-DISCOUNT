@@ -190,15 +190,21 @@ class CartDiscountPlugin
      */
     public function filterCartItemDisplayedPrice($priceHtml, $cartItem)
     {
-        // Check if the cart item is associated with a parent cart item
-        if (isset($cartItem['parent_cart_item_key'])) {
-            // Customize the displayed price for discount items associated with a parent cart item
-            return 'FREE';
-        }
+        try {
+            // Check if the cart item is associated with a parent cart item
+            if (isset($cartItem['parent_cart_item_key'])) {
+                // Customize the displayed price for discount items associated with a parent cart item
+                return 'FREE';
+            }
 
-        // Return the original price HTML for non-discount items
-        return $priceHtml;
+            // Return the original price HTML for non-discount items
+            return $priceHtml;
+        } catch (Exception $e) {
+            // Handle the exception, logging the error message
+            $this->handleException($e);
+        }
     }
+
 
 
     /**
