@@ -49,43 +49,63 @@
  */
 
 /**
- * Check
+ * Exit if accessed directly.
+ *
+ * Prevents the plugin file from being accessed directly, ensuring it is only loaded within the context of WordPress.
+ * This helps enhance security and ensures proper integration with the WordPress environment.
  */
 if (!defined('ABSPATH')) {
-    exit;
+    wp_die('Direct access not allowed.', 'Access Denied', array('response' => 403));
 }
+
 
 class CartDiscountPlugin
 {
 
     /**
-     * CartDiscountPlugin constructor.
+     * Constructor for the CartDiscountPlugin class, initializes actions and filters for WooCommerce.
      */
     public function __construct()
     {
+        // Add filter and action hooks for cart updates
         add_filter('woocommerce_update_cart_action_cart_updated', array($this, 'onCartUpdated'));
         add_action('woocommerce_add_to_cart', array($this, 'onCartUpdated'));
+
+        // Add filter and action hooks for cart item price adjustments
         add_filter('woocommerce_before_calculate_totals', array($this, 'beforeCalculateTotals'));
         add_action('woocommerce_cart_item_subtotal', array($this, 'filterCartItemDisplayedPrice'), 10, 2);
         add_action('woocommerce_cart_item_price', array($this, 'filterCartItemDisplayedPrice'), 10, 2);
+
+        // Add filter and action hooks for cart item removal and quantity adjustments
         add_filter('woocommerce_cart_item_remove_link', array($this, 'customizedCartItemRemoveLink'), 20, 2);
         add_filter('woocommerce_cart_item_quantity', array($this, 'setItemQuantity'), 10, 2);
         add_action('woocommerce_cart_item_removed', array($this, 'removeDiscountItem'), 10, 2);
     }
 
+
     /**
-     * @param $cartUpdated
-     * @return mixed
+     * Handle actions when the cart is updated, such as adding or removing items based on specific conditions.
+     *
+     * @param mixed $cartUpdated The result of the cart update action.
+     *
+     * @return mixed The updated result of the cart update action.
      */
     public function onCartUpdated($cartUpdated)
     {
+        // Retrieve the WooCommerce cart object
         $cart = WC()->cart;
 
+        // Check if the cart is not empty
         if (!$cart->is_empty()) {
+            // Iterate through each item in the cart
             foreach ($cart->get_cart() as $item_key => $item) {
+                // Check if the item quantity is greater than or equal to 5 and the discount has not been added
                 if (5 <= $item['quantity'] && (!isset($item['discount_added']) || $item['discount_added'] === 'false')) {
                     try {
+                        // Set the discount added flag to true for the current item
                         WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
+
+                        // Add a separated product (FREE) to the cart
                         $insert = $cart->add_to_cart(
                             $item['product_id'],
                             1,
@@ -94,110 +114,162 @@ class CartDiscountPlugin
                             ['unique_key' => md5(microtime() . rand()), 'parent_cart_item_key' => $item_key]
                         );
 
+                        // Throw an exception if the product addition to the cart fails
                         if (!$insert) {
                             throw new Exception('Failed to add to cart!');
                         }
                     } catch (Exception $e) {
+                        // Handle the exception, logging the error message
                         $this->handleException($e);
                     }
                 }
 
+                // Check if the item is associated with a parent cart item
                 if (isset($item['parent_cart_item_key'])) {
+                    // Retrieve the parent cart item key
                     $parent_cart_item_key = $item['parent_cart_item_key'];
 
+                    // Check if the quantity of the parent cart item is less than 5
                     if ($cart->get_cart_item($parent_cart_item_key)['quantity'] < 5) {
+                        // Set the discount added flag to false for the parent cart item
                         WC()->cart->cart_contents[$parent_cart_item_key]['discount_added'] = 'false';
+
+                        // Remove the discount item from the cart
                         $cart->remove_cart_item($item_key);
                     }
                 }
             }
         }
 
+        // Return the updated result of the cart update action
         return $cartUpdated;
     }
 
+
     /**
-     * @param $cart
+     * Perform actions before calculating cart totals, such as adjusting prices for specific cart items.
+     *
+     * @param WC_Cart $cart The WooCommerce cart object.
+     *
      * @return void
      */
     public function beforeCalculateTotals($cart)
     {
+        // Iterate through each item in the cart
         foreach ($cart->get_cart() as $item_key => $item) {
+            // Check if the cart item is associated with a parent cart item
             if (isset($item['parent_cart_item_key'])) {
+                // Set the price of the cart item to 0 for discount items associated with a parent cart item
                 $item['data']->set_price(0);
             }
         }
     }
 
+
     /**
-     * @param $priceHtml
-     * @param $cartItem
-     * @return mixed|string
+     * Filter and customize the displayed price HTML for a cart item based on certain conditions.
+     *
+     * @param mixed|string $priceHtml The HTML string representing the displayed price of the cart item.
+     * @param array $cartItem The data of the cart item.
+     *
+     * @return mixed|string The updated price HTML.
      */
     public function filterCartItemDisplayedPrice($priceHtml, $cartItem)
     {
+        // Check if the cart item is associated with a parent cart item
         if (isset($cartItem['parent_cart_item_key'])) {
+            // Customize the displayed price for discount items associated with a parent cart item
             return 'FREE';
         }
 
+        // Return the original price HTML for non-discount items
         return $priceHtml;
     }
 
+
     /**
-     * @param $buttonLink
-     * @param $cartItemKey
-     * @return mixed|string
+     * Customize the remove item link for a cart item based on certain conditions.
+     *
+     * @param mixed|string $buttonLink The HTML link for removing the cart item.
+     * @param string $cartItemKey The key of the cart item.
+     *
+     * @return mixed|string The updated remove item link HTML.
      */
     public function customizedCartItemRemoveLink($buttonLink, $cartItemKey)
     {
+        // Retrieve the cart item based on the provided cart item key
         $cartItem = WC()->cart->get_cart()[$cartItemKey];
 
+        // Check if the cart item is associated with a parent cart item
         if (isset($cartItem['parent_cart_item_key'])) {
+            // Customize the remove item link for discount items associated with a parent cart item
             $buttonLink = '';
         }
 
+        // Return the updated remove item link HTML
         return $buttonLink;
     }
 
+
     /**
-     * @param $productQuantity
-     * @param $cartItemKey
-     * @return mixed|string
+     * Set the quantity of the specified cart item based on certain conditions.
+     *
+     * @param mixed $productQuantity The quantity of the cart item.
+     * @param string $cartItemKey The key of the cart item.
+     *
+     * @return mixed The updated quantity of the cart item.
      */
     public function setItemQuantity($productQuantity, $cartItemKey)
     {
+        // Retrieve the cart item based on the provided cart item key
         $cartItem = WC()->cart->get_cart()[$cartItemKey];
 
+        // Check if the cart item is associated with a parent cart item
         if (isset($cartItem['parent_cart_item_key'])) {
+            // Set the quantity to '1' for discount items associated with a parent cart item
             $productQuantity = '1';
         }
 
+        // Return the updated quantity of the cart item
         return $productQuantity;
     }
 
-     /**
-     * @param $cartItemKey
-     * @param $cart
+
+    /**
+     * Remove the discount item associated with the specified cart item key when the parent item is deleted.
+     *
+     * @param string $cartItemKey The key of the cart item being removed.
+     * @param WC_Cart $cart The WooCommerce cart object.
+     *
      * @return void
      */
     public function removeDiscountItem($cartItemKey, $cart)
     {
         foreach ($cart->get_cart() as $itemKey => $item) {
+            // Check if the current item is a discount item associated with the specified parent cart item key
             if (isset($item['parent_cart_item_key']) && $item['parent_cart_item_key'] == $cartItemKey) {
+                // Remove the discount item from the cart
                 $cart->remove_cart_item($itemKey);
             }
         }
     }
 
+
     /**
-     * @param Exception $e
+     * Handle an exception by logging the error message to the system error log.
+     *
+     * @param Exception $e The exception to be handled.
+     *
      * @return void
      */
     private function handleException(Exception $e)
     {
+        // Log the exception message to the system error log
         error_log('Exception Message: ' . $e->getMessage());
-        // Add more error logging or custom handling if needed
+
+        // Additional error logging or custom handling can be added here if needed
     }
+
 }
 
 new CartDiscountPlugin();
