@@ -73,15 +73,26 @@ function action_on_cart_updated( $cart_updated ) {
 
                 $item_data = [ 'unique_key' => md5(microtime().rand()), 'parent_cart_item_key' => $item_key  ];
 
-                /**
-                 * Add a counter on parent product to check if the discount is added or not
-                 */
-                WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
+                try {
+                    /**
+                     * Add a counter on parent product to check if the discount is added or not
+                     */
+                    WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
 
-                /**
-                 * Add seperated product ( FREE )
-                 */
-                $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
+                    /**
+                     * Add seperated product ( FREE )
+                     */
+                    $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
+                } catch (Exception $e) {
+                    error_log( 'Get Message ' . $e->getMessage() );
+//                    error_log( 'Get File ' . $e->getFile() );
+//                    error_log( 'Get Line ' . $e->getLine() );
+//                    error_log( 'Get Code ' . $e->getCode() );
+//                    error_log( 'Get TraceAsString ' . $e->getTraceAsString() );
+//                    error_log( 'Previous ' . $e->getPrevious() );
+//                    error_log( 'Get Trace ' . $e->getTrace() );
+                }
+
             }
 
             /**
@@ -219,3 +230,4 @@ function remove_discount_item( $cart_item_key, $cart ) {
 
 }
 add_action('woocommerce_cart_item_removed', 'remove_discount_item', 10, 2);
+// a b c d e f g h i j k l m n o p q r s t u v w x y z
