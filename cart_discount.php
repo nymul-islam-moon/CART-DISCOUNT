@@ -58,7 +58,15 @@ if (!defined('ABSPATH')) {
     wp_die('Direct access not allowed.', 'Access Denied', array('response' => 403));
 }
 
-
+/**
+ * Class CartDiscountPlugin
+ *
+ * This class is a WooCommerce plugin designed to handle cart updates, item price adjustments, and removal of discount items
+ * based on specific conditions. It provides functionality to customize the cart behavior and prices in accordance with
+ * defined rules.
+ *
+ * @package CART-DISCOUNT
+ */
 class CartDiscountPlugin
 {
 
