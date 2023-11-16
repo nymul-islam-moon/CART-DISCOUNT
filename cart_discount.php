@@ -163,15 +163,21 @@ class CartDiscountPlugin
      */
     public function beforeCalculateTotals($cart)
     {
-        // Iterate through each item in the cart
-        foreach ($cart->get_cart() as $item_key => $item) {
-            // Check if the cart item is associated with a parent cart item
-            if (isset($item['parent_cart_item_key'])) {
-                // Set the price of the cart item to 0 for discount items associated with a parent cart item
-                $item['data']->set_price(0);
+        try {
+            // Iterate through each item in the cart
+            foreach ($cart->get_cart() as $item_key => $item) {
+                // Check if the cart item is associated with a parent cart item
+                if (isset($item['parent_cart_item_key'])) {
+                    // Set the price of the cart item to 0 for discount items associated with a parent cart item
+                    $item['data']->set_price(0);
+                }
             }
+        } catch (Exception $e) {
+            // Handle the exception, logging the error message
+            $this->handleException($e);
         }
     }
+
 
 
     /**
