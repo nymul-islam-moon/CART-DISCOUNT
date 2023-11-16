@@ -48,191 +48,156 @@
  * ********************************************************************
  */
 
-// If this file is called directly, abort.
-if ( ! defined( 'ABSPATH' ) ) {
+/**
+ * Check
+ */
+if (!defined('ABSPATH')) {
     exit;
 }
 
+class CartDiscountPlugin
+{
 
-/**
- * Add free item to cart when parent item quantity is >= 5
- *
- * @param $cart_updated
- *
- * @return mixed
- *
- * @throws Exception
- */
+    /**
+     * CartDiscountPlugin constructor.
+     */
+    public function __construct()
+    {
+        add_filter('woocommerce_update_cart_action_cart_updated', array($this, 'onCartUpdated'));
+        add_action('woocommerce_add_to_cart', array($this, 'onCartUpdated'));
+        add_filter('woocommerce_before_calculate_totals', array($this, 'beforeCalculateTotals'));
+        add_action('woocommerce_cart_item_subtotal', array($this, 'filterCartItemDisplayedPrice'), 10, 2);
+        add_action('woocommerce_cart_item_price', array($this, 'filterCartItemDisplayedPrice'), 10, 2);
+        add_filter('woocommerce_cart_item_remove_link', array($this, 'customizedCartItemRemoveLink'), 20, 2);
+        add_filter('woocommerce_cart_item_quantity', array($this, 'setItemQuantity'), 10, 2);
+        add_action('woocommerce_cart_item_removed', array($this, 'removeDiscountItem'), 10, 2);
+    }
 
-function action_on_cart_updated( $cart_updated ) {
-    $cart = WC()->cart;
+    /**
+     * @param $cartUpdated
+     * @return mixed
+     */
+    public function onCartUpdated($cartUpdated)
+    {
+        $cart = WC()->cart;
 
-    if ( ! $cart->is_empty() ) {
-        foreach ( $cart->get_cart() as $item_key => $item ) {
-            if ( 5 <= $item['quantity'] && ( ! isset( $item['discount_added'] ) ||  $item['discount_added'] == 'false' ) ) {
+        if (!$cart->is_empty()) {
+            foreach ($cart->get_cart() as $item_key => $item) {
+                if (5 <= $item['quantity'] && (!isset($item['discount_added']) || $item['discount_added'] === 'false')) {
+                    try {
+                        WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
+                        $insert = $cart->add_to_cart(
+                            $item['product_id'],
+                            1,
+                            $item['variation_id'],
+                            $item['variation'],
+                            ['unique_key' => md5(microtime() . rand()), 'parent_cart_item_key' => $item_key]
+                        );
 
-                $item_data = [ 'unique_key' => md5(microtime().rand()), 'parent_cart_item_key' => $item_key  ];
-
-                try {
-                    /**
-                     * Add a counter on parent product to check if the discount is added or not
-                     */
-                    WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
-
-                    /**
-                     * Add seperated product ( FREE )
-                     */
-                    $insert = $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
-
-                    if ( ! $insert ) {
-                        throw new Exception('Failed to add to cart!');
+                        if (!$insert) {
+                            throw new Exception('Failed to add to cart!');
+                        }
+                    } catch (Exception $e) {
+                        $this->handleException($e);
                     }
-
-                } catch (Exception $e) {
-                    error_log( 'Get Message ' . $e->getMessage() );
-//                    error_log( 'Get File ' . $e->getFile() );
-//                    error_log( 'Get Line ' . $e->getLine() );
-//                    error_log( 'Get Code ' . $e->getCode() );
-//                    error_log( 'Get TraceAsString ' . $e->getTraceAsString() );
-//                    error_log( 'Previous ' . $e->getPrevious() );
-//                    error_log( 'Get Trace ' . $e->getTrace() );
                 }
 
-            }
+                if (isset($item['parent_cart_item_key'])) {
+                    $parent_cart_item_key = $item['parent_cart_item_key'];
 
-            /**
-             * Remove free cart item if parent cart have less than 5 quantity
-             */
-            if ( isset( $item['parent_cart_item_key'] ) ) {
-                /**
-                 * Check parent cart item quantity
-                 */
-                $cart_item_key = $item['parent_cart_item_key'];
-
-                $cart_item = WC()->cart->get_cart_item($cart_item_key);
-
-                if ( $cart_item['quantity'] < 5 ){
-
-                    WC()->cart->cart_contents[$cart_item_key]['discount_added'] = 'false';
-
-                    $cart->remove_cart_item($item_key);
+                    if ($cart->get_cart_item($parent_cart_item_key)['quantity'] < 5) {
+                        WC()->cart->cart_contents[$parent_cart_item_key]['discount_added'] = 'false';
+                        $cart->remove_cart_item($item_key);
+                    }
                 }
-
             }
-
-        }
-    }
-    return $cart_updated;
-}
-add_filter('woocommerce_update_cart_action_cart_updated', 'action_on_cart_updated');
-add_action('woocommerce_add_to_cart', 'action_on_cart_updated');
-
-
-/**
- * Set free cart item price 0
- *
- * @param $cart
- *
- * @return void
- */
-function action_before_calculate_totals( $cart ) {
-
-    foreach ( $cart->get_cart() as $item_key => $item ) {
-
-        if ( isset( $item['test'] ) && $item['test'] == 456 ) {
-            error_log( $item_key );
         }
 
-        if ( isset($item['parent_cart_item_key']) ) {
-            $item['data']->set_price(0);
-        }
-    }
-}
-// Set cart item price
-add_filter('woocommerce_before_calculate_totals', 'action_before_calculate_totals');
-
-
-/**
- * Display FREE tag to the subtotal and cart item price section
- *
- * @param $price_html
- * @param $cart_item
- *
- * @return mixed|string
- */
-function filter_cart_item_displayed_price($price_html, $cart_item){
-    if (isset($cart_item['parent_cart_item_key'])) {
-        return 'FREE';
+        return $cartUpdated;
     }
 
-    return $price_html;
-}
-
-// Display "Free" instead of "0" price
-add_action('woocommerce_cart_item_subtotal', 'filter_cart_item_displayed_price', 10, 2);
-add_action('woocommerce_cart_item_price', 'filter_cart_item_displayed_price', 10, 2);
-
-
-/**
- * Remove Delete button from the free product on cart page
- *
- * @param $button_link
- * @param $cart_item_key
- *
- * @return mixed|string
- */
-function customized_cart_item_remove_link( $button_link, $cart_item_key ){
-
-    $cart_item = WC()->cart->get_cart()[$cart_item_key];
-
-    if ( isset( $cart_item['parent_cart_item_key'] ) ) {
-        $button_link = '';
-    }
-
-    return $button_link;
-}
-add_filter('woocommerce_cart_item_remove_link', 'customized_cart_item_remove_link', 20, 2 );
-
-
-/**
- * Set discount item quantity to 1
- *
- * @param $product_quantity
- * @param $cart_item_key
- *
- * @return mixed|string
- */
-function set_item_quantity($product_quantity, $cart_item_key) {
-
-    // Get the cart object
-    $cart_item = WC()->cart->get_cart()[$cart_item_key];
-
-    if ( isset( $cart_item['parent_cart_item_key'] ) ) {
-        $product_quantity = '1';
-    }
-
-    return $product_quantity;
-}
-add_filter('woocommerce_cart_item_quantity', 'set_item_quantity', 10, 2);
-
-
-/**
- * Remove discount item from cart page when the parent item is deleted
- *
- * @param $cart_item_key
- * @param $cart
- *
- * @return void
- */
-function remove_discount_item( $cart_item_key, $cart ) {
-
-    foreach ( $cart->get_cart() as $item_key => $item ) {
-
-        if( isset( $item['parent_cart_item_key'] ) && $item['parent_cart_item_key'] == $cart_item_key ) {
-            $cart->remove_cart_item( $item_key );
+    /**
+     * @param $cart
+     * @return void
+     */
+    public function beforeCalculateTotals($cart)
+    {
+        foreach ($cart->get_cart() as $item_key => $item) {
+            if (isset($item['parent_cart_item_key'])) {
+                $item['data']->set_price(0);
+            }
         }
     }
 
+    /**
+     * @param $priceHtml
+     * @param $cartItem
+     * @return mixed|string
+     */
+    public function filterCartItemDisplayedPrice($priceHtml, $cartItem)
+    {
+        if (isset($cartItem['parent_cart_item_key'])) {
+            return 'FREE';
+        }
+
+        return $priceHtml;
+    }
+
+    /**
+     * @param $buttonLink
+     * @param $cartItemKey
+     * @return mixed|string
+     */
+    public function customizedCartItemRemoveLink($buttonLink, $cartItemKey)
+    {
+        $cartItem = WC()->cart->get_cart()[$cartItemKey];
+
+        if (isset($cartItem['parent_cart_item_key'])) {
+            $buttonLink = '';
+        }
+
+        return $buttonLink;
+    }
+
+    /**
+     * @param $productQuantity
+     * @param $cartItemKey
+     * @return mixed|string
+     */
+    public function setItemQuantity($productQuantity, $cartItemKey)
+    {
+        $cartItem = WC()->cart->get_cart()[$cartItemKey];
+
+        if (isset($cartItem['parent_cart_item_key'])) {
+            $productQuantity = '1';
+        }
+
+        return $productQuantity;
+    }
+
+     /**
+     * @param $cartItemKey
+     * @param $cart
+     * @return void
+     */
+    public function removeDiscountItem($cartItemKey, $cart)
+    {
+        foreach ($cart->get_cart() as $itemKey => $item) {
+            if (isset($item['parent_cart_item_key']) && $item['parent_cart_item_key'] == $cartItemKey) {
+                $cart->remove_cart_item($itemKey);
+            }
+        }
+    }
+
+    /**
+     * @param Exception $e
+     * @return void
+     */
+    private function handleException(Exception $e)
+    {
+        error_log('Exception Message: ' . $e->getMessage());
+        // Add more error logging or custom handling if needed
+    }
 }
-add_action('woocommerce_cart_item_removed', 'remove_discount_item', 10, 2);
-// a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+new CartDiscountPlugin();
