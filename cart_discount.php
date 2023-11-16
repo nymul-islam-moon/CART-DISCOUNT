@@ -82,7 +82,12 @@ function action_on_cart_updated( $cart_updated ) {
                     /**
                      * Add seperated product ( FREE )
                      */
-                    $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
+                    $insert = $cart->add_to_cart( $item['product_id'], 1, $item['variation_id'], $item['variation'], $item_data );
+
+                    if ( ! $insert ) {
+                        throw new Exception('Failed to add to cart!');
+                    }
+
                 } catch (Exception $e) {
                     error_log( 'Get Message ' . $e->getMessage() );
 //                    error_log( 'Get File ' . $e->getFile() );
