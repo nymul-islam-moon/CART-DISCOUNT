@@ -4,7 +4,7 @@
  *
  * @package           CART-DISCOUNT
  * @author            Nymul Islam Moon
- * @copyright         2023 Nymul Islam
+ * @copyright         2023 Nymul Islam Moon
  * @license           GPL-2.0-or-later
  *
  * @wordpress-plugin
