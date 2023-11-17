@@ -77,8 +77,7 @@ class CartDiscountPlugin
     /**
      * Constructor for the CartDiscountPlugin class, initializes actions and filters for WooCommerce.
      */
-    public function __construct()
-    {
+    public function __construct() {
         // set product quantity
         $this->disProdQty = 5;
         // Add filter and action hooks for cart updates
@@ -104,8 +103,7 @@ class CartDiscountPlugin
      *
      * @return mixed The updated result of the cart update action.
      */
-    public function onCartUpdated( $cartUpdated )
-    {
+    public function onCartUpdated( $cartUpdated ) {
         // Retrieve the WooCommerce cart object
         $cart = WC()->cart;
 
@@ -167,8 +165,7 @@ class CartDiscountPlugin
      *
      * @return void
      */
-    public function beforeCalculateTotals( $cart )
-    {
+    public function beforeCalculateTotals( $cart ) {
         try {
             // Iterate through each item in the cart
             foreach ( $cart->get_cart() as $item_key => $item ) {
@@ -194,8 +191,7 @@ class CartDiscountPlugin
      *
      * @return mixed|string The updated price HTML.
      */
-    public function filterCartItemDisplayedPrice( $priceHtml, $cartItem )
-    {
+    public function filterCartItemDisplayedPrice( $priceHtml, $cartItem ) {
         try {
             // Check if the cart item is associated with a parent cart item
             if ( isset( $cartItem[ 'parent_cart_item_key' ] ) ) {
@@ -221,8 +217,7 @@ class CartDiscountPlugin
      *
      * @return mixed|string The updated remove item link HTML.
      */
-    public function customizedCartItemRemoveLink( $buttonLink, $cartItemKey )
-    {
+    public function customizedCartItemRemoveLink( $buttonLink, $cartItemKey ): string {
         try {
             // Retrieve the cart item based on the provided cart item key
             $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
@@ -250,8 +245,7 @@ class CartDiscountPlugin
      *
      * @return mixed The updated quantity of the cart item.
      */
-    public function setItemQuantity( $productQuantity, $cartItemKey )
-    {
+    public function setItemQuantity( $productQuantity, $cartItemKey ) {
         // Retrieve the cart item based on the provided cart item key
         $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
 
@@ -274,8 +268,7 @@ class CartDiscountPlugin
      *
      * @return void
      */
-    public function removeDiscountItem( $cartItemKey, $cart )
-    {
+    public function removeDiscountItem( $cartItemKey, $cart ) {
         foreach ( $cart->get_cart() as $itemKey => $item ) {
             // Check if the current item is a discount item associated with the specified parent cart item key
             if ( isset( $item[ 'parent_cart_item_key' ] ) && $item[ 'parent_cart_item_key' ] == $cartItemKey ) {
