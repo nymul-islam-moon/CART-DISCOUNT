@@ -302,15 +302,15 @@ class CartDiscountPlugin
             // For example, you might want to send an email notification to the admin
 
             // Send an email to the admin with the exception details
-//            $admin_email = get_option( 'admin_email' );
-//            $subject = 'Exception occurred on your website';
-//            $message = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
-//            $message .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
-//            $message .= 'Exception Code: ' . $e->getCode() . PHP_EOL;
-//            $message .= 'File: ' . $e->getFile() . PHP_EOL;
-//            $message .= 'Line: ' . $e->getLine() . PHP_EOL;
-//
-//            wp_mail( $admin_email, $subject, $message );
+            $admin_email = get_option( 'admin_email' );
+            $subject = 'Exception occurred on your website';
+            $message = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
+            $message .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
+            $message .= 'Exception Code: ' . $e->getCode() . PHP_EOL;
+            $message .= 'File: ' . $e->getFile() . PHP_EOL;
+            $message .= 'Line: ' . $e->getLine() . PHP_EOL;
+
+            wp_mail( $admin_email, $subject, $message );
 
         } catch ( Exception $e ) {
             // If there is an error handling the exception, log it to the system error log
