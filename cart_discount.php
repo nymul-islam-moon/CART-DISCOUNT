@@ -217,17 +217,22 @@ class CartDiscountPlugin
      */
     public function customizedCartItemRemoveLink( $buttonLink, $cartItemKey )
     {
-        // Retrieve the cart item based on the provided cart item key
-        $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
+        try {
+            // Retrieve the cart item based on the provided cart item key
+            $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
 
-        // Check if the cart item is associated with a parent cart item
-        if ( isset( $cartItem[ 'parent_cart_item_key' ] ) ) {
-            // Customize the remove item link for discount items associated with a parent cart item
-            $buttonLink = '';
+            // Check if the cart item is associated with a parent cart item
+            if ( isset( $cartItem[ 'parent_cart_item_key' ] ) ) {
+                // Customize the remove item link for discount items associated with a parent cart item
+                $buttonLink = '';
+            }
+
+            // Return the updated remove item link HTML
+            return $buttonLink;
+        } catch (Exception $e) {
+            // Handle the exception, logging the error message
+            $this->handleException( $e );
         }
-
-        // Return the updated remove item link HTML
-        return $buttonLink;
     }
 
 
@@ -282,12 +287,30 @@ class CartDiscountPlugin
      *
      * @return void
      */
-    private function handleException( Exception $e )
-    {
-        // Log the exception message to the system error log
-        error_log( 'Exception Message: ' . $e->getMessage() );
+    private function handleException( Exception $e ) {
+        try {
+            // Log the exception message to the system error log
+            error_log( 'Exception Message: ' . $e->getMessage() );
 
-        // Additional error logging or custom handling can be added here if needed
+            // Additional error logging or custom handling can be added here if needed
+            // For example, you might want to send an email notification to the admin
+
+            // Send an email to the admin with the exception details
+            $admin_email = get_option( 'admin_email' );
+            $subject = 'Exception occurred on your website';
+            $message = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
+            $message .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
+            $message .= 'Exception Code: ' . $e->getCode() . PHP_EOL;
+            $message .= 'File: ' . $e->getFile() . PHP_EOL;
+            $message .= 'Line: ' . $e->getLine() . PHP_EOL;
+
+            wp_mail( $admin_email, $subject, $message );
+
+        } catch ( Exception $e ) {
+            // If there is an error handling the exception, log it to the system error log
+            error_log( 'Error handling exception: ' . $e->getMessage() );
+            // You may want to log to a specific error log or take additional actions as needed
+        }
     }
 
 }
