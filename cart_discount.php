@@ -69,12 +69,18 @@ if (!defined('ABSPATH')) {
  */
 class CartDiscountPlugin
 {
+    /**
+     * Product discount quantity
+     */
+    private $disProdQty;
 
     /**
      * Constructor for the CartDiscountPlugin class, initializes actions and filters for WooCommerce.
      */
     public function __construct()
     {
+        // set product quantity
+        $this->disProdQty = 5;
         // Add filter and action hooks for cart updates
         add_filter( 'woocommerce_update_cart_action_cart_updated', array( $this, 'onCartUpdated' ) );
         add_action( 'woocommerce_add_to_cart', array( $this, 'onCartUpdated' ) );
@@ -108,7 +114,7 @@ class CartDiscountPlugin
             // Iterate through each item in the cart
             foreach ( $cart->get_cart() as $item_key => $item ) {
                 // Check if the item quantity is greater than or equal to 5 and the discount has not been added
-                if ( 5 <= $item[ 'quantity' ] && ( ! isset( $item[ 'discount_added' ] ) || $item[ 'discount_added' ] === 'false' )) {
+                if ( $this->disProdQty <= $item[ 'quantity' ] && ( ! isset( $item[ 'discount_added' ] ) || $item[ 'discount_added' ] === 'false' )) {
                     try {
                         // Set the discount added flag to true for the current item
                         WC()->cart->cart_contents[ $item_key ][ 'discount_added' ] = 'true';
@@ -296,15 +302,15 @@ class CartDiscountPlugin
             // For example, you might want to send an email notification to the admin
 
             // Send an email to the admin with the exception details
-            $admin_email = get_option( 'admin_email' );
-            $subject = 'Exception occurred on your website';
-            $message = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
-            $message .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
-            $message .= 'Exception Code: ' . $e->getCode() . PHP_EOL;
-            $message .= 'File: ' . $e->getFile() . PHP_EOL;
-            $message .= 'Line: ' . $e->getLine() . PHP_EOL;
-
-            wp_mail( $admin_email, $subject, $message );
+//            $admin_email = get_option( 'admin_email' );
+//            $subject = 'Exception occurred on your website';
+//            $message = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
+//            $message .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
+//            $message .= 'Exception Code: ' . $e->getCode() . PHP_EOL;
+//            $message .= 'File: ' . $e->getFile() . PHP_EOL;
+//            $message .= 'Line: ' . $e->getLine() . PHP_EOL;
+//
+//            wp_mail( $admin_email, $subject, $message );
 
         } catch ( Exception $e ) {
             // If there is an error handling the exception, log it to the system error log
