@@ -80,6 +80,8 @@ class CartDiscountPlugin
     public function __construct() {
         // set product quantity
         $this->disProdQty = 5;
+        // check php version
+        add_action('init', array( $this, 'check_php_version' ) );
         // Add filter and action hooks for cart updates
         add_filter( 'woocommerce_update_cart_action_cart_updated', array( $this, 'onCartUpdated' ) );
         add_action( 'woocommerce_add_to_cart', array( $this, 'onCartUpdated' ) );
@@ -93,8 +95,24 @@ class CartDiscountPlugin
         add_filter( 'woocommerce_cart_item_remove_link', array( $this, 'customizedCartItemRemoveLink' ), 20, 2 );
         add_filter( 'woocommerce_cart_item_quantity', array( $this, 'setItemQuantity' ), 10, 2 );
         add_action( 'woocommerce_cart_item_removed', array( $this, 'removeDiscountItem' ), 10, 2 );
+
     }
 
+    function check_php_version() {
+        // Minimum required PHP version
+        $min_php_version = '7.2.0';
+
+        // Get the current PHP version
+        $current_php_version = phpversion();
+
+        // Compare the PHP version
+        if (version_compare($current_php_version, $min_php_version, '<')) {
+            // The installed PHP version is below the required version
+            wp_die('This plugin requires PHP version ' . $min_php_version . ' or higher. Please upgrade your PHP version.');
+        }
+
+        // Continue with the rest of your plugin code here
+    }
 
     /**
      * Handle actions when the cart is updated, such as adding or removing items based on specific conditions.
