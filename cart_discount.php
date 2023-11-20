@@ -175,7 +175,6 @@ class CartDiscountPlugin
         return $cartUpdated;
     }
 
-
     /**
      * Perform actions before calculating cart totals, such as adjusting prices for specific cart items.
      *
@@ -198,9 +197,6 @@ class CartDiscountPlugin
             $this->handleException( $e );
         }
     }
-
-
-
 
     /**
      * Filter and customize the displayed price HTML for a cart item based on certain conditions.
@@ -229,9 +225,6 @@ class CartDiscountPlugin
         }
     }
 
-
-
-
     /**
      * Customize the remove item link for a cart item based on certain conditions.
      *
@@ -259,7 +252,6 @@ class CartDiscountPlugin
         }
     }
 
-
     /**
      * Set the quantity of the specified cart item based on certain conditions.
      *
@@ -282,8 +274,6 @@ class CartDiscountPlugin
         return ( string ) $productQuantity;
     }
 
-
-
     /**
      * Remove the discount item associated with the specified cart item key when the parent item is deleted.
      *
@@ -302,8 +292,6 @@ class CartDiscountPlugin
         }
     }
 
-
-
     /**
      * Handle an exception by logging the error message to the system error log.
      *
@@ -319,7 +307,7 @@ class CartDiscountPlugin
             // Additional error logging or custom handling can be added here if needed
             // For example, you might want to send an email notification to the admin
 
-            // Send an email to the admin with the exception details
+            // Send email to the admin with the exception details
             $admin_email = get_option( 'admin_email' );
             $subject = 'Exception occurred on your website';
             $message = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
