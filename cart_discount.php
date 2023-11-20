@@ -183,7 +183,7 @@ class CartDiscountPlugin
      *
      * @return void
      */
-    public function beforeCalculateTotals( $cart ) {
+    public function beforeCalculateTotals( $cart ): void {
         try {
             // Iterate through each item in the cart
             foreach ( $cart->get_cart() as $item_key => $item ) {
@@ -201,6 +201,7 @@ class CartDiscountPlugin
 
 
 
+
     /**
      * Filter and customize the displayed price HTML for a cart item based on certain conditions.
      *
@@ -209,21 +210,25 @@ class CartDiscountPlugin
      *
      * @return mixed|string The updated price HTML.
      */
-    public function filterCartItemDisplayedPrice( $priceHtml, $cartItem ) {
+    public function filterCartItemDisplayedPrice($priceHtml, $cartItem): string {
         try {
             // Check if the cart item is associated with a parent cart item
-            if ( isset( $cartItem[ 'parent_cart_item_key' ] ) ) {
+            if (isset($cartItem['parent_cart_item_key'])) {
                 // Customize the displayed price for discount items associated with a parent cart item
                 return 'FREE';
             }
 
             // Return the original price HTML for non-discount items
             return $priceHtml;
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
             // Handle the exception, logging the error message
-            $this->handleException( $e );
+            $this->handleException($e);
+
+            // In case of an exception, return a default or error message
+            return 'Error processing cart item displayed price';
         }
     }
+
 
 
 
@@ -263,7 +268,7 @@ class CartDiscountPlugin
      *
      * @return mixed The updated quantity of the cart item.
      */
-    public function setItemQuantity( $productQuantity, $cartItemKey ) {
+    public function setItemQuantity( $productQuantity, $cartItemKey ): string {
         // Retrieve the cart item based on the provided cart item key
         $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
 
@@ -274,8 +279,9 @@ class CartDiscountPlugin
         }
 
         // Return the updated quantity of the cart item
-        return $productQuantity;
+        return (string) $productQuantity;
     }
+
 
 
     /**
@@ -286,7 +292,7 @@ class CartDiscountPlugin
      *
      * @return void
      */
-    public function removeDiscountItem( $cartItemKey, $cart ) {
+    public function removeDiscountItem( $cartItemKey, $cart ): void {
         foreach ( $cart->get_cart() as $itemKey => $item ) {
             // Check if the current item is a discount item associated with the specified parent cart item key
             if ( isset( $item[ 'parent_cart_item_key' ] ) && $item[ 'parent_cart_item_key' ] == $cartItemKey ) {
@@ -297,6 +303,7 @@ class CartDiscountPlugin
     }
 
 
+
     /**
      * Handle an exception by logging the error message to the system error log.
      *
@@ -304,7 +311,7 @@ class CartDiscountPlugin
      *
      * @return void
      */
-    private function handleException( Exception $e ) {
+    private function handleException( Exception $e ): void {
         try {
             // Log the exception message to the system error log
             error_log( 'Exception Message: ' . $e->getMessage() );
