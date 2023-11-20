@@ -135,13 +135,7 @@ class CartDiscountPlugin
                         WC()->cart->cart_contents[ $item_key ][ 'discount_added' ] = 'true';
 
                         // Add a separated product (FREE) to the cart
-                        $insert = $cart->add_to_cart(
-                            $item[ 'product_id' ],
-                            1,
-                            $item[ 'variation_id' ],
-                            $item[ 'variation' ],
-                            [ 'unique_key' => md5( microtime() . rand()), 'parent_cart_item_key' => $item_key ]
-                        );
+                        $insert = $cart->add_to_cart( $item[ 'product_id' ], 1, $item[ 'variation_id' ], $item[ 'variation' ], [ 'unique_key' => md5( microtime() . rand()), 'parent_cart_item_key' => $item_key ] );
 
                         // Throw an exception if the product addition to the cart fails
                         if ( ! $insert ) {
@@ -318,7 +312,6 @@ class CartDiscountPlugin
             // You may want to log to a specific error log or take additional actions as needed
         }
     }
-
 }
 
 new CartDiscountPlugin();
