@@ -58,6 +58,8 @@ if (!defined('ABSPATH')) {
     wp_die('Direct access not allowed.', 'Access Denied', array( 'response' => 403 ) );
 }
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 /**
  * Class CartDiscountPlugin
  *
@@ -71,7 +73,12 @@ final class CartDiscount
 {
     const version = '1.0.0';
 
-    function __construct() {
+    private function __construct() {
+        add_action( 'plugin_loaded', [ $this, 'init_plugin' ] );
+    }
+
+    public function init_plugin() {
+        new \Cart\Discount\CartDiscount();
     }
 
     public static function init() {
@@ -82,3 +89,9 @@ final class CartDiscount
         }
     }
 }
+
+function cart_discount() {
+    return CartDiscount::init();
+}
+
+cart_discount();

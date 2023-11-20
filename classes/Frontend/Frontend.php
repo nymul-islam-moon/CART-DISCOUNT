@@ -1,5 +1,7 @@
 <?php
 
+namespace Cart\Discount\Frontend;
+
 /**
  * Class CartDiscountPlugin
  *
@@ -9,7 +11,8 @@
  *
  * @package CART-DISCOUNT
  */
-final class CartDiscount {
+class Frontend
+{
     /**
      * Product discount quantity
      */
@@ -18,24 +21,25 @@ final class CartDiscount {
     /**
      * Constructor for the CartDiscountPlugin class, initializes actions and filters for WooCommerce.
      */
-    public function __construct() {
+    public function __construct()
+    {
         // set product quantity
         $this->disProdQty = 5;
         // check php version
-        add_action( 'init', array( $this, 'check_php_version' ) );
+        add_action('init', array($this, 'check_php_version'));
         // Add filter and action hooks for cart updates
-        add_filter( 'woocommerce_update_cart_action_cart_updated', array( $this, 'onCartUpdated' ) );
-        add_action( 'woocommerce_add_to_cart', array( $this, 'onCartUpdated' ) );
+        add_filter('woocommerce_update_cart_action_cart_updated', array($this, 'onCartUpdated'));
+        add_action('woocommerce_add_to_cart', array($this, 'onCartUpdated'));
 
         // Add filter and action hooks for cart item price adjustments
-        add_filter( 'woocommerce_before_calculate_totals', array( $this, 'beforeCalculateTotals' ) );
-        add_action( 'woocommerce_cart_item_subtotal', array( $this, 'filterCartItemDisplayedPrice' ), 10, 2 );
-        add_action( 'woocommerce_cart_item_price', array( $this, 'filterCartItemDisplayedPrice' ), 10, 2 );
+        add_filter('woocommerce_before_calculate_totals', array($this, 'beforeCalculateTotals'));
+        add_action('woocommerce_cart_item_subtotal', array($this, 'filterCartItemDisplayedPrice'), 10, 2);
+        add_action('woocommerce_cart_item_price', array($this, 'filterCartItemDisplayedPrice'), 10, 2);
 
         // Add filter and action hooks for cart item removal and quantity adjustments
-        add_filter( 'woocommerce_cart_item_remove_link', array( $this, 'customizedCartItemRemoveLink' ), 20, 2 );
-        add_filter( 'woocommerce_cart_item_quantity', array( $this, 'setItemQuantity' ), 10, 2 );
-        add_action( 'woocommerce_cart_item_removed', array( $this, 'removeDiscountItem' ), 10, 2 );
+        add_filter('woocommerce_cart_item_remove_link', array($this, 'customizedCartItemRemoveLink'), 20, 2);
+        add_filter('woocommerce_cart_item_quantity', array($this, 'setItemQuantity'), 10, 2);
+        add_action('woocommerce_cart_item_removed', array($this, 'removeDiscountItem'), 10, 2);
 
     }
 
@@ -48,9 +52,10 @@ final class CartDiscount {
      *
      * @since 1.0.0
      */
-    public function check_php_version() {
-        if ( version_compare(phpversion(), '7.2.0', '<' ) ) {
-            wp_die( 'This plugin requires PHP version 7.2.0 or higher. Please upgrade your PHP version.' );
+    public function check_php_version()
+    {
+        if (version_compare(phpversion(), '7.2.0', '<')) {
+            wp_die('This plugin requires PHP version 7.2.0 or higher. Please upgrade your PHP version.');
         }
     }
 
@@ -61,40 +66,41 @@ final class CartDiscount {
      *
      * @return mixed The updated result of the cart update action.
      */
-    public function onCartUpdated( $cartUpdated ) {
+    public function onCartUpdated($cartUpdated)
+    {
         // Retrieve the WooCommerce cart object
         $cart = WC()->cart;
 
         // Check if the cart is not empty
-        if ( ! $cart->is_empty() ) {
+        if (!$cart->is_empty()) {
             // Iterate through each item in the cart
-            foreach ( $cart->get_cart() as $item_key => $item ) {
+            foreach ($cart->get_cart() as $item_key => $item) {
                 // Check if the item quantity is greater than or equal to 5 and the discount has not been added
-                if ( $this->disProdQty <= $item[ 'quantity' ] && ( ! isset( $item[ 'discount_added' ] ) || $item[ 'discount_added' ] === 'false' )) {
+                if ($this->disProdQty <= $item['quantity'] && (!isset($item['discount_added']) || $item['discount_added'] === 'false')) {
                     try {
                         // Set the discount added flag to true for the current item
-                        WC()->cart->cart_contents[ $item_key ][ 'discount_added' ] = 'true';
+                        WC()->cart->cart_contents[$item_key]['discount_added'] = 'true';
 
                         // Add a separated product (FREE) to the cart
-                        $insert = $cart->add_to_cart( $item[ 'product_id' ], 1, $item[ 'variation_id' ], $item[ 'variation' ], [ 'unique_key' => md5( microtime() . rand()), 'parent_cart_item_key' => $item_key ] );
+                        $insert = $cart->add_to_cart($item['product_id'], 1, $item['variation_id'], $item['variation'], ['unique_key' => md5(microtime() . rand()), 'parent_cart_item_key' => $item_key]);
 
                         // Throw an exception if the product addition to the cart fails
-                        if ( ! $insert ) {
-                            throw new Exception( 'Failed to add to cart!' );
+                        if (!$insert) {
+                            throw new Exception('Failed to add to cart!');
                         }
-                    } catch ( Exception $e ) {
+                    } catch (Exception $e) {
                         // Handle the exception, logging the error message
-                        $this->handleException( $e );
+                        $this->handleException($e);
                     }
                 }
 
                 // Check if the item is associated with a parent cart item and its quantity is less than 5
-                if ( isset( $item['parent_cart_item_key'] ) && $cart->get_cart_item( $item['parent_cart_item_key'] ) ['quantity'] < $this->disProdQty ) {
+                if (isset($item['parent_cart_item_key']) && $cart->get_cart_item($item['parent_cart_item_key']) ['quantity'] < $this->disProdQty) {
                     // Set the discount added flag to false for the parent cart item
-                    WC()->cart->cart_contents[ $item['parent_cart_item_key'] ] ['discount_added'] = 'false';
+                    WC()->cart->cart_contents[$item['parent_cart_item_key']] ['discount_added'] = 'false';
 
                     // Remove the discount item from the cart
-                    $cart->remove_cart_item( $item_key );
+                    $cart->remove_cart_item($item_key);
                 }
 
             }
@@ -111,19 +117,20 @@ final class CartDiscount {
      *
      * @return void
      */
-    public function beforeCalculateTotals( $cart ): void {
+    public function beforeCalculateTotals($cart): void
+    {
         try {
             // Iterate through each item in the cart
-            foreach ( $cart->get_cart() as $item_key => $item ) {
+            foreach ($cart->get_cart() as $item_key => $item) {
                 // Check if the cart item is associated with a parent cart item
-                if ( isset( $item[ 'parent_cart_item_key' ] ) ) {
+                if (isset($item['parent_cart_item_key'])) {
                     // Set the price of the cart item to 0 for discount items associated with a parent cart item
-                    $item[ 'data' ]->set_price( 0 );
+                    $item['data']->set_price(0);
                 }
             }
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
             // Handle the exception, logging the error message
-            $this->handleException( $e );
+            $this->handleException($e);
         }
     }
 
@@ -135,7 +142,8 @@ final class CartDiscount {
      *
      * @return mixed|string The updated price HTML.
      */
-    public function filterCartItemDisplayedPrice( $priceHtml, $cartItem ): string {
+    public function filterCartItemDisplayedPrice($priceHtml, $cartItem): string
+    {
         try {
             // Check if the cart item is associated with a parent cart item
             if (isset($cartItem['parent_cart_item_key'])) {
@@ -145,9 +153,9 @@ final class CartDiscount {
 
             // Return the original price HTML for non-discount items
             return $priceHtml;
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
             // Handle the exception, logging the error message
-            $this->handleException( $e );
+            $this->handleException($e);
 
             // In case of an exception, return a default or error message
             return 'Error processing cart item displayed price';
@@ -162,22 +170,23 @@ final class CartDiscount {
      *
      * @return mixed|string The updated remove item link HTML.
      */
-    public function customizedCartItemRemoveLink( $buttonLink, $cartItemKey ): string {
+    public function customizedCartItemRemoveLink($buttonLink, $cartItemKey): string
+    {
         try {
             // Retrieve the cart item based on the provided cart item key
-            $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
+            $cartItem = WC()->cart->get_cart()[$cartItemKey];
 
             // Check if the cart item is associated with a parent cart item
-            if ( isset( $cartItem[ 'parent_cart_item_key' ] ) ) {
+            if (isset($cartItem['parent_cart_item_key'])) {
                 // Customize the remove item link for discount items associated with a parent cart item
                 $buttonLink = '';
             }
 
             // Return the updated remove item link HTML
             return $buttonLink;
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
             // Handle the exception, logging the error message
-            $this->handleException( $e );
+            $this->handleException($e);
         }
     }
 
@@ -189,18 +198,19 @@ final class CartDiscount {
      *
      * @return mixed The updated quantity of the cart item.
      */
-    public function setItemQuantity( $productQuantity, $cartItemKey ): string {
+    public function setItemQuantity($productQuantity, $cartItemKey): string
+    {
         // Retrieve the cart item based on the provided cart item key
-        $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
+        $cartItem = WC()->cart->get_cart()[$cartItemKey];
 
         // Check if the cart item is associated with a parent cart item
-        if ( isset( $cartItem[ 'parent_cart_item_key' ] ) ) {
+        if (isset($cartItem['parent_cart_item_key'])) {
             // Set the quantity to '1' for discount items associated with a parent cart item
             $productQuantity = '1';
         }
 
         // Return the updated quantity of the cart item
-        return ( string ) $productQuantity;
+        return ( string )$productQuantity;
     }
 
     /**
@@ -211,12 +221,13 @@ final class CartDiscount {
      *
      * @return void
      */
-    public function removeDiscountItem( $cartItemKey, $cart ): void {
-        foreach ( $cart->get_cart() as $itemKey => $item ) {
+    public function removeDiscountItem($cartItemKey, $cart): void
+    {
+        foreach ($cart->get_cart() as $itemKey => $item) {
             // Check if the current item is a discount item associated with the specified parent cart item key
-            if ( isset( $item[ 'parent_cart_item_key' ] ) && $item[ 'parent_cart_item_key' ] == $cartItemKey ) {
+            if (isset($item['parent_cart_item_key']) && $item['parent_cart_item_key'] == $cartItemKey) {
                 // Remove the discount item from the cart
-                $cart->remove_cart_item( $itemKey );
+                $cart->remove_cart_item($itemKey);
             }
         }
     }
@@ -228,28 +239,29 @@ final class CartDiscount {
      *
      * @return void
      */
-    private function handleException( Exception $e ): void {
+    private function handleException(Exception $e): void
+    {
         try {
             // Log the exception message to the system error log
-            error_log( 'Exception Message: ' . $e->getMessage() );
+            error_log('Exception Message: ' . $e->getMessage());
 
             // Additional error logging or custom handling can be added here if needed
             // For example, you might want to send an email notification to the admin
 
             // Send email to the admin with the exception details
-            $admin_email = get_option( 'admin_email' );
-            $subject = 'Exception occurred on your website';
-            $message = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
-            $message .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
-            $message .= 'Exception Code: ' . $e->getCode() . PHP_EOL;
-            $message .= 'File: ' . $e->getFile() . PHP_EOL;
-            $message .= 'Line: ' . $e->getLine() . PHP_EOL;
+            $admin_email = get_option('admin_email');
+            $subject     = 'Exception occurred on your website';
+            $message     = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
+            $message     .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
+            $message     .= 'Exception Code: ' . $e->getCode() . PHP_EOL;
+            $message     .= 'File: ' . $e->getFile() . PHP_EOL;
+            $message     .= 'Line: ' . $e->getLine() . PHP_EOL;
 
-            wp_mail( $admin_email, $subject, $message );
+            wp_mail($admin_email, $subject, $message);
 
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
             // If there is an error handling the exception, log it to the system error log
-            error_log( 'Error handling exception: ' . $e->getMessage() );
+            error_log('Error handling exception: ' . $e->getMessage());
             // You may want to log to a specific error log or take additional actions as needed
         }
     }
