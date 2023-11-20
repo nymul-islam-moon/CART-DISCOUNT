@@ -81,7 +81,7 @@ class CartDiscountPlugin
         // set product quantity
         $this->disProdQty = 5;
         // check php version
-        add_action('init', array( $this, 'check_php_version' ) );
+        add_action( 'init', array( $this, 'check_php_version' ) );
         // Add filter and action hooks for cart updates
         add_filter( 'woocommerce_update_cart_action_cart_updated', array( $this, 'onCartUpdated' ) );
         add_action( 'woocommerce_add_to_cart', array( $this, 'onCartUpdated' ) );
@@ -108,7 +108,7 @@ class CartDiscountPlugin
         // Compare the PHP version
         if (version_compare($current_php_version, $min_php_version, '<')) {
             // The installed PHP version is below the required version
-            wp_die('This plugin requires PHP version ' . $min_php_version . ' or higher. Please upgrade your PHP version.');
+            wp_die( 'This plugin requires PHP version ' . $min_php_version . ' or higher. Please upgrade your PHP version.' );
         }
 
         // Continue with the rest of your plugin code here
@@ -150,7 +150,7 @@ class CartDiscountPlugin
                         }
                     } catch ( Exception $e ) {
                         // Handle the exception, logging the error message
-                        $this->handleException($e);
+                        $this->handleException( $e );
                     }
                 }
 
@@ -210,7 +210,7 @@ class CartDiscountPlugin
      *
      * @return mixed|string The updated price HTML.
      */
-    public function filterCartItemDisplayedPrice($priceHtml, $cartItem): string {
+    public function filterCartItemDisplayedPrice( $priceHtml, $cartItem ): string {
         try {
             // Check if the cart item is associated with a parent cart item
             if (isset($cartItem['parent_cart_item_key'])) {
@@ -220,9 +220,9 @@ class CartDiscountPlugin
 
             // Return the original price HTML for non-discount items
             return $priceHtml;
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             // Handle the exception, logging the error message
-            $this->handleException($e);
+            $this->handleException( $e );
 
             // In case of an exception, return a default or error message
             return 'Error processing cart item displayed price';
@@ -253,7 +253,7 @@ class CartDiscountPlugin
 
             // Return the updated remove item link HTML
             return $buttonLink;
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             // Handle the exception, logging the error message
             $this->handleException( $e );
         }
@@ -279,7 +279,7 @@ class CartDiscountPlugin
         }
 
         // Return the updated quantity of the cart item
-        return (string) $productQuantity;
+        return ( string ) $productQuantity;
     }
 
 
