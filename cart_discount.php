@@ -69,11 +69,16 @@ if (!defined('ABSPATH')) {
  */
 final class CartDiscount
 {
+    const version = '1.0.0';
 
+    function __construct() {
+    }
+
+    public static function init() {
+        static $instance = false;
+
+        if ( ! $instance ) {
+            $instance = new self();
+        }
+    }
 }
-
-function cart_discount() {
-    return new CartDiscount();
-}
-
-cart_discount();

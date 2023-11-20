@@ -44,3 +44,35 @@ This plugin is licensed under the GPL v2 or later. See the [LICENSE](LICENSE) fi
 ---
 
 **Note:** This README template is a starting point. Feel free to customize it based on your specific requirements and preferences.
+
+Method 1
+/your-plugin-name
+|-- admin
+|   |-- assets
+|   |   |-- css
+|   |   |-- js
+|   |   |-- images
+|   |-- includes
+|   |   |-- AdminClass.php
+|   |-- views
+|   |   |-- admin-page.php
+|   |-- AdminController.php
+|-- public
+|   |-- assets
+|   |   |-- css
+|   |   |-- js
+|   |   |-- images
+|   |-- includes
+|   |   |-- PublicClass.php
+|   |-- views
+|   |   |-- public-page.php
+|   |-- PublicController.php
+|-- assets
+|   |-- css
+|   |-- js
+|   |-- images
+|-- classes
+|   |-- PluginClass.php
+|-- languages
+|-- vendor
+|-- your-plugin-name.php

@@ -1,0 +1,20 @@
+{
+    "name": "nymul-islam/cart-discount",
+    "description": "his plugin will add duplicate cart item from parent item when the parent item have quantity is >= 5 and remove the duplicate item when the parent item have quantity < 5;",
+    "type": "wordpress-plugin",
+    "license": "GPLv2",
+    "autoload": {
+        "psr-4": {
+            "Cart\\Discount\\": "classes/"
+        },
+        "files": []
+    },
+    "authors": [
+        {
+            "name": "Nymul Islam Moon",
+            "email": "towkir1997islam@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
