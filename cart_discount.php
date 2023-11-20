@@ -98,20 +98,19 @@ class CartDiscountPlugin
 
     }
 
-    function check_php_version() {
-        // Minimum required PHP version
-        $min_php_version = '7.2.0';
-
-        // Get the current PHP version
-        $current_php_version = phpversion();
-
-        // Compare the PHP version
-        if (version_compare($current_php_version, $min_php_version, '<')) {
-            // The installed PHP version is below the required version
-            wp_die( 'This plugin requires PHP version ' . $min_php_version . ' or higher. Please upgrade your PHP version.' );
+    /**
+     * Check PHP Version Requirement.
+     *
+     * This function checks if the installed PHP version meets the minimum requirement.
+     * If the PHP version is below the required version, it terminates the script and
+     * displays an error message prompting the user to upgrade.
+     *
+     * @since 1.0.0
+     */
+    public function check_php_version() {
+        if ( version_compare(phpversion(), '7.2.0', '<' ) ) {
+            wp_die( 'This plugin requires PHP version 7.2.0 or higher. Please upgrade your PHP version.' );
         }
-
-        // Continue with the rest of your plugin code here
     }
 
     /**
@@ -154,20 +153,15 @@ class CartDiscountPlugin
                     }
                 }
 
-                // Check if the item is associated with a parent cart item
-                if ( isset( $item[ 'parent_cart_item_key' ] ) ) {
-                    // Retrieve the parent cart item key
-                    $parent_cart_item_key = $item[ 'parent_cart_item_key' ];
+                // Check if the item is associated with a parent cart item and its quantity is less than 5
+                if ( isset( $item['parent_cart_item_key'] ) && $cart->get_cart_item( $item['parent_cart_item_key'] ) ['quantity'] < $this->disProdQty ) {
+                    // Set the discount added flag to false for the parent cart item
+                    WC()->cart->cart_contents[ $item['parent_cart_item_key'] ] ['discount_added'] = 'false';
 
-                    // Check if the quantity of the parent cart item is less than 5
-                    if ( $cart->get_cart_item( $parent_cart_item_key )[ 'quantity' ] < 5 ) {
-                        // Set the discount added flag to false for the parent cart item
-                        WC()->cart->cart_contents[ $parent_cart_item_key ][ 'discount_added' ] = 'false';
-
-                        // Remove the discount item from the cart
-                        $cart->remove_cart_item( $item_key );
-                    }
+                    // Remove the discount item from the cart
+                    $cart->remove_cart_item( $item_key );
                 }
+
             }
         }
 
