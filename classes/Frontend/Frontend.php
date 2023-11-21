@@ -1,6 +1,7 @@
 <?php
 
 namespace Cart\Discount\Frontend;
+use \Cart\Discount\Version\Version;
 
 /**
  * Class CartDiscountPlugin
@@ -26,7 +27,7 @@ class Frontend
         // set product quantity
         $this->disProdQty = 5;
         // check php version
-        add_action('init', array($this, 'check_php_version'));
+        new Version();
         // Add filter and action hooks for cart updates
         add_filter('woocommerce_update_cart_action_cart_updated', array($this, 'onCartUpdated'));
         add_action('woocommerce_add_to_cart', array($this, 'onCartUpdated'));
@@ -41,22 +42,6 @@ class Frontend
         add_filter('woocommerce_cart_item_quantity', array($this, 'setItemQuantity'), 10, 2);
         add_action('woocommerce_cart_item_removed', array($this, 'removeDiscountItem'), 10, 2);
 
-    }
-
-    /**
-     * Check PHP Version Requirement.
-     *
-     * This function checks if the installed PHP version meets the minimum requirement.
-     * If the PHP version is below the required version, it terminates the script and
-     * displays an error message prompting the user to upgrade.
-     *
-     * @since 1.0.0
-     */
-    public function check_php_version()
-    {
-        if (version_compare(phpversion(), '7.2.0', '<')) {
-            wp_die('This plugin requires PHP version 7.2.0 or higher. Please upgrade your PHP version.');
-        }
     }
 
     /**
@@ -117,20 +102,20 @@ class Frontend
      *
      * @return void
      */
-    public function beforeCalculateTotals($cart): void
+    public function beforeCalculateTotals( $cart ): void
     {
         try {
             // Iterate through each item in the cart
-            foreach ($cart->get_cart() as $item_key => $item) {
+            foreach ( $cart->get_cart() as $item_key => $item ) {
                 // Check if the cart item is associated with a parent cart item
                 if (isset($item['parent_cart_item_key'])) {
                     // Set the price of the cart item to 0 for discount items associated with a parent cart item
-                    $item['data']->set_price(0);
+                    $item['data']->set_price( 0 );
                 }
             }
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             // Handle the exception, logging the error message
-            $this->handleException($e);
+            $this->handleException( $e );
         }
     }
 
@@ -142,7 +127,7 @@ class Frontend
      *
      * @return mixed|string The updated price HTML.
      */
-    public function filterCartItemDisplayedPrice($priceHtml, $cartItem): string
+    public function filterCartItemDisplayedPrice( $priceHtml, $cartItem ): string
     {
         try {
             // Check if the cart item is associated with a parent cart item

@@ -21,4 +21,8 @@ class Admin
             20
         );
     }
+
+    public function admin_page() {
+        echo 'Hello World';
+    }
 }
