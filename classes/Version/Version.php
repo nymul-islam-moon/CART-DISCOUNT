@@ -69,14 +69,26 @@ class Version
     }
 
 
-    private function check_version()
-    {
-        if ( ! get_option('cart_discount_version') ) {
+    /**
+     * Check Plugin Version and Update if Necessary.
+     *
+     * This method checks the stored version of the plugin against the current version.
+     * If no version is stored, it adds the current version to the options. If a version is already stored,
+     * it updates the stored version to the current one.
+     *
+     * @since 1.0.0
+     */
+    private function check_version() {
+        // Check if the plugin version is not stored
+        if (!get_option('cart_discount_version')) {
+            // Add the current plugin version to the options
             add_option('cart_discount_version', self::VERSION);
         } else {
+            // Update the stored plugin version to the current one
             update_option('cart_discount_version', self::VERSION);
         }
     }
+
 
     /**
      * Check PHP Version Requirement.
