@@ -24,10 +24,14 @@ class Frontend
      */
     public function __construct()
     {
-        // set product quantity
-        $this->disProdQty = 5;
-        // check php version
-        new Version();
+        // get product quantity
+
+        if ( get_option('cart_discount_product_qty') ) {
+            $this->disProdQty = get_option('cart_discount_product_qty');
+        } else {
+            $this->disProdQty = 4;
+        }
+
         // Add filter and action hooks for cart updates
         add_filter('woocommerce_update_cart_action_cart_updated', array($this, 'onCartUpdated'));
         add_action('woocommerce_add_to_cart', array($this, 'onCartUpdated'));
@@ -138,7 +142,7 @@ class Frontend
 
             // Return the original price HTML for non-discount items
             return $priceHtml;
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             // Handle the exception, logging the error message
             $this->handleException($e);
 

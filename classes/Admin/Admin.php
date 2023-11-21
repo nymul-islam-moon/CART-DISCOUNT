@@ -23,6 +23,11 @@ class Admin
     }
 
     public function admin_page() {
+        if ( ! get_option('cart_discount_product_qty') ) {
+            add_option('cart_discount_product_qty', '3');
+        } else {
+            update_option('cart_discount_product_qty', '3');
+        }
         echo 'Hello World';
     }
 }
