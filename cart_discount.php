@@ -10,7 +10,8 @@
  * @wordpress-plugin
  * Plugin Name:       CART-DISCOUNT
  * Plugin URI:        https://github.com/nymul-islam-moon/CART-DISCOUNT
- * Description:       This plugin will add duplicate cart item from parent item when the parent item have quantity is >= 5 and remove the duplicate item when the parent item have quantity < 5;
+ * Description:       This plugin will enhance your WordPress e-commerce experience by automatically adding a complimentary product to the cart when a specified quantity of a particular product is added. For example, you can configure the plugin to offer a free T-shirt for every four T-shirts added to the cart, providing your customers with an enticing incentive to make larger purchases.
+ duplicate item when the parent item have quantity < 5;
  * Version:           1.0.0
  * Requires at least: 5.2
  * Requires PHP:      7.2
@@ -71,8 +72,6 @@ require_once __DIR__ . '/vendor/autoload.php';
  */
 final class CartDiscount
 {
-    const version = '1.0.0';
-
     private function __construct() {
         add_action( 'plugin_loaded', [ $this, 'init_plugin' ] );
     }

@@ -1,7 +1,6 @@
 <?php
 
 namespace Cart\Discount\Frontend;
-use \Cart\Discount\Version\Version;
 
 /**
  * Class CartDiscountPlugin
