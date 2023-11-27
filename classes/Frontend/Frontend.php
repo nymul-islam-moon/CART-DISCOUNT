@@ -158,11 +158,11 @@ class Frontend
      *
      * @return mixed|string The updated remove item link HTML.
      */
-    public function customizedCartItemRemoveLink($buttonLink, $cartItemKey): string
+    public function customizedCartItemRemoveLink( $buttonLink, $cartItemKey ): string
     {
         try {
             // Retrieve the cart item based on the provided cart item key
-            $cartItem = WC()->cart->get_cart()[$cartItemKey];
+            $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
 
             // Check if the cart item is associated with a parent cart item
             if (isset($cartItem['parent_cart_item_key'])) {
@@ -172,9 +172,9 @@ class Frontend
 
             // Return the updated remove item link HTML
             return $buttonLink;
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             // Handle the exception, logging the error message
-            $this->handleException($e);
+            $this->handleException( $e );
         }
     }
 
@@ -186,13 +186,13 @@ class Frontend
      *
      * @return mixed The updated quantity of the cart item.
      */
-    public function setItemQuantity($productQuantity, $cartItemKey): string
+    public function setItemQuantity( $productQuantity, $cartItemKey ): string
     {
         // Retrieve the cart item based on the provided cart item key
-        $cartItem = WC()->cart->get_cart()[$cartItemKey];
+        $cartItem = WC()->cart->get_cart()[ $cartItemKey ];
 
         // Check if the cart item is associated with a parent cart item
-        if (isset($cartItem['parent_cart_item_key'])) {
+        if ( isset( $cartItem[ 'parent_cart_item_key' ])) {
             // Set the quantity to '1' for discount items associated with a parent cart item
             $productQuantity = '1';
         }
@@ -209,13 +209,13 @@ class Frontend
      *
      * @return void
      */
-    public function removeDiscountItem($cartItemKey, $cart): void
+    public function removeDiscountItem( $cartItemKey, $cart ): void
     {
         foreach ($cart->get_cart() as $itemKey => $item) {
             // Check if the current item is a discount item associated with the specified parent cart item key
-            if (isset($item['parent_cart_item_key']) && $item['parent_cart_item_key'] == $cartItemKey) {
+            if ( isset( $item[ 'parent_cart_item_key' ] ) && $item[ 'parent_cart_item_key' ] == $cartItemKey ) {
                 // Remove the discount item from the cart
-                $cart->remove_cart_item($itemKey);
+                $cart->remove_cart_item( $itemKey );
             }
         }
     }
@@ -227,7 +227,7 @@ class Frontend
      *
      * @return void
      */
-    private function handleException(Exception $e): void
+    private function handleException( Exception $e ): void
     {
         try {
             // Log the exception message to the system error log
@@ -237,7 +237,7 @@ class Frontend
             // For example, you might want to send an email notification to the admin
 
             // Send email to the admin with the exception details
-            $admin_email = get_option('admin_email');
+            $admin_email = get_option( 'admin_email' );
             $subject     = 'Exception occurred on your website';
             $message     = 'An exception occurred on your website. Details: ' . PHP_EOL . PHP_EOL;
             $message     .= 'Exception Message: ' . $e->getMessage() . PHP_EOL;
@@ -245,11 +245,11 @@ class Frontend
             $message     .= 'File: ' . $e->getFile() . PHP_EOL;
             $message     .= 'Line: ' . $e->getLine() . PHP_EOL;
 
-            wp_mail($admin_email, $subject, $message);
+            wp_mail( $admin_email, $subject, $message );
 
-        } catch (Exception $e) {
+        } catch ( Exception $e ) {
             // If there is an error handling the exception, log it to the system error log
-            error_log('Error handling exception: ' . $e->getMessage());
+            error_log( 'Error handling exception: ' . $e->getMessage() );
             // You may want to log to a specific error log or take additional actions as needed
         }
     }
